@@ -1,0 +1,40 @@
+# Compilation / temp
+*.o
+*.so
+*.dll
+*.dylib
+*.lib
+*.exe
+*.out
+*.log
+Debug/
+Release/
+obj/
+Build/
+bin/
+
+# IDE
+*.suo
+*.user
+*.userprefs
+*.3T
+*.tmproj
+.vs/
+.idea/
+*.sublime-workspace
+
+# Deps
+/node_modules/
+/vendor/
+/Dependencies/
+
+# Sys
+.DS_Store
+Thumbs.db
+
+# Cache / packages
+*.zip
+*.tar.gz
+*.rar
+*.pkg
+.cache
