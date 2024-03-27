@@ -5,6 +5,40 @@
 #include <fstream>
 #include <sstream>
 
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define DEBUG
+
+#ifdef DEBUG
+    #define GL_CALL(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+#else
+    #define GL_CALL(x) x
+#endif
+
+/* Logging */
+
+static void Log(std::string message)
+{
+    std::cout << "[Logger] " << message << std::endl;
+}
+
+static void GLClearError()
+{
+    while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+    while (GLenum error = glGetError())
+    {
+        std::cout << "[OpenGL Error] Code " << error << ": " << function << " in " << file << ":" << line << std::endl;
+        return false;
+    }
+    
+    return true;
+}
+
+/* Shaders */
+
 enum class ShaderType
 {
     NONE = -1,
@@ -17,11 +51,6 @@ struct ShaderProgramSource
     std::string VertexSource;
     std::string FragmentSource;
 };
-
-static void Log(std::string message)
-{
-    std::cout << message << std::endl;
-}
 
 static ShaderProgramSource ParseShader(const std::string& filepath)
 {
@@ -171,7 +200,7 @@ int main(void)
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawArrays(GL_POLYGON, 0, 5);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
