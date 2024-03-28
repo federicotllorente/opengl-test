@@ -160,7 +160,7 @@ int main(void)
     /* Check if GLEW has been initialized properly */
     if (glewInit() != GLEW_OK)
         return -1;
-
+    
     float positions[] = {
         -0.5, -0.5,
         0.5, -0.5,
@@ -175,53 +175,68 @@ int main(void)
 
     /* Create and bind a new buffer */
     unsigned int buffer;
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_CALL(glGenBuffers(1, &buffer));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, buffer));
 
     /* Provide data to buffer */
-    glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), positions, GL_STATIC_DRAW);
+    GL_CALL(glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW));
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
+    GL_CALL(glEnableVertexAttribArray(0));
+    GL_CALL(glVertexAttribPointer(
         0, // index
         2, // size
         GL_FLOAT, // data type
         GL_FALSE, // should it be normalized?
         sizeof(float) * 2, // stride - the amount of memory we need to go to the next vertex (for more complex data structures we should use e.g. structs)
         0 // pointer - the amount of memory we need to go to the next parameter (in this case, the next axis point)
-    );
+    ));
 
     /* Create an IBO (Index Buffer Object) */
     unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    GL_CALL(glGenBuffers(1, &ibo));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
     /* Create the shader */
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    glUseProgram(shader);
+    GL_CALL(glUseProgram(shader));
 
     GL_CALL(int uniformLocation = glGetUniformLocation(shader, "u_Color"));
     ASSERT(uniformLocation != -1);
+
+    /* Unbind everything */
+    GL_CALL(glUseProgram(0));
+    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     
     float R = 0.0f;
     float increment = 0.02f;
+    Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 
-        Color uniformColor{ R, 0.584f, 0.141f, 1.0f };
+        /* Re-bind everything */
+        GL_CALL(glUseProgram(shader));
+        
         GL_CALL(glUniform4f(
             uniformLocation,
-            uniformColor.R,
+            R,
             uniformColor.G,
             uniformColor.B,
             uniformColor.A
         ));
+
+        GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, shader));
+
+        GL_CALL(glEnableVertexAttribArray(0));
+        GL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+
+        GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawArrays(GL_POLYGON, 0, 5);
