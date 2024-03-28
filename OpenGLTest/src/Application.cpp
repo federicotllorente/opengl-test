@@ -145,7 +145,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(1200, 900, "OpenGL Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -154,6 +154,8 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+
+    glfwSwapInterval(1);
 
     /* Check if GLEW has been initialized properly */
     if (glewInit() != GLEW_OK)
@@ -200,17 +202,11 @@ int main(void)
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader);
 
-    int uniformLocation = glGetUniformLocation(shader, "u_Color");
+    GL_CALL(int uniformLocation = glGetUniformLocation(shader, "u_Color"));
     ASSERT(uniformLocation != -1);
     
-    Color uniformColor { 1.0, 0.584, 0.141, 1.0 };
-    glUniform4f(
-        uniformLocation,
-        uniformColor.R,
-        uniformColor.G,
-        uniformColor.B,
-        uniformColor.A
-    );
+    float R = 0.0f;
+    float increment = 0.02f;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -218,9 +214,25 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
+        Color uniformColor{ R, 0.584f, 0.141f, 1.0f };
+        GL_CALL(glUniform4f(
+            uniformLocation,
+            uniformColor.R,
+            uniformColor.G,
+            uniformColor.B,
+            uniformColor.A
+        ));
+
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawArrays(GL_POLYGON, 0, 5);
         GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+        if (R >= 1.0f)
+            increment = -0.02f;
+        else if (R <= 0.0f)
+            increment = 0.02f;
+
+        R += increment;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
