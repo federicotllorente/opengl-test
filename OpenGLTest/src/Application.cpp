@@ -1,41 +1,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <string>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define DEBUG
-
-#ifdef DEBUG
-    #define GL_CALL(x) GLClearError(); x; ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-#else
-    #define GL_CALL(x) x
-#endif
-
-/* Logging */
-
-static void Log(std::string message)
-{
-    std::cout << "[Logger] " << message << std::endl;
-}
-
-static void GLClearError()
-{
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error] Code " << error << ": " << function << " in " << file << ":" << line << std::endl;
-        return false;
-    }
-    
-    return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 /* Shaders */
 
@@ -186,13 +158,8 @@ int main(void)
     GL_CALL(glGenVertexArrays(1, &vao));
     GL_CALL(glBindVertexArray(vao));
 
-    /* Create and bind a new buffer */
-    unsigned int buffer;
-    GL_CALL(glGenBuffers(1, &buffer));
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-
-    /* Provide data to buffer */
-    GL_CALL(glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW));
+    /* Create a new vertex buffer */
+    VertexBuffer vb(positions, 8 * sizeof(float));
 
     GL_CALL(glEnableVertexAttribArray(0));
     GL_CALL(glVertexAttribPointer(
@@ -204,11 +171,8 @@ int main(void)
         0 // pointer - the amount of memory we need to go to the next parameter (in this case, the next axis point)
     ));
 
-    /* Create an IBO (Index Buffer Object) */
-    unsigned int ibo;
-    GL_CALL(glGenBuffers(1, &ibo));
-    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
+    /* Create a new IBO (Index Buffer Object) */
+    IndexBuffer ibo(indices, 6);
 
     /* Create the shader */
     ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -221,8 +185,10 @@ int main(void)
     /* Unbind everything */
     GL_CALL(glBindVertexArray(0));
     GL_CALL(glUseProgram(0));
-    GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    vb.Unbind();
+    ibo.Unbind();
+    //GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    //GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     
     float R = 0.0f;
     float increment = 0.02f;
@@ -254,7 +220,8 @@ int main(void)
         GL_CALL(glBindVertexArray(vao));
 
         /* Re-bind IBO */
-        GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+        ibo.Bind();
+        //GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawArrays(GL_POLYGON, 0, 5);
