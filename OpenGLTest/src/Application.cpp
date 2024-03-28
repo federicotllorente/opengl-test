@@ -144,6 +144,12 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    /* Set version to 3.3.x */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    /* Set profile to Core */
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(1200, 900, "OpenGL Test", NULL, NULL);
     if (!window)
@@ -160,6 +166,8 @@ int main(void)
     /* Check if GLEW has been initialized properly */
     if (glewInit() != GLEW_OK)
         return -1;
+
+    std::cout << "[OpenGL Version] " << glGetString(GL_VERSION) << std::endl;
     
     float positions[] = {
         -0.5, -0.5,
@@ -172,6 +180,11 @@ int main(void)
         0, 1, 2,
         2, 3, 0
     };
+
+    /* Create a new VAO (Vertex Array Object) */
+    unsigned int vao;
+    GL_CALL(glGenVertexArrays(1, &vao));
+    GL_CALL(glBindVertexArray(vao));
 
     /* Create and bind a new buffer */
     unsigned int buffer;
@@ -206,6 +219,7 @@ int main(void)
     ASSERT(uniformLocation != -1);
 
     /* Unbind everything */
+    GL_CALL(glBindVertexArray(0));
     GL_CALL(glUseProgram(0));
     GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -220,9 +234,10 @@ int main(void)
         /* Render here */
         GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 
-        /* Re-bind everything */
+        /* Re-use program */
         GL_CALL(glUseProgram(shader));
         
+        /* Set color with a uniform */
         GL_CALL(glUniform4f(
             uniformLocation,
             R,
@@ -231,11 +246,14 @@ int main(void)
             uniformColor.A
         ));
 
-        GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, shader));
+        //GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, shader));
+        //GL_CALL(glEnableVertexAttribArray(0));
+        //GL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
-        GL_CALL(glEnableVertexAttribArray(0));
-        GL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+        /* Re-bind VAO */
+        GL_CALL(glBindVertexArray(vao));
 
+        /* Re-bind IBO */
         GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
