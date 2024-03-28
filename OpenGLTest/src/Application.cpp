@@ -46,6 +46,14 @@ enum class ShaderType
     FRAGMENT = 1
 };
 
+struct Color
+{
+    float R;
+    float G;
+    float B;
+    float A;
+};
+
 struct ShaderProgramSource
 {
     std::string VertexSource;
@@ -192,6 +200,18 @@ int main(void)
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
     glUseProgram(shader);
 
+    int uniformLocation = glGetUniformLocation(shader, "u_Color");
+    ASSERT(uniformLocation != -1);
+    
+    Color uniformColor { 1.0, 0.584, 0.141, 1.0 };
+    glUniform4f(
+        uniformLocation,
+        uniformColor.R,
+        uniformColor.G,
+        uniformColor.B,
+        uniformColor.A
+    );
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -200,7 +220,7 @@ int main(void)
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         //glDrawArrays(GL_POLYGON, 0, 5);
-        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
