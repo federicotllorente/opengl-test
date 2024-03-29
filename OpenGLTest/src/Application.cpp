@@ -140,108 +140,105 @@ int main(void)
         return -1;
 
     std::cout << "[OpenGL Version] " << glGetString(GL_VERSION) << std::endl;
-    
-    float positions[] = {
-        -0.5, -0.5,
-        0.5, -0.5,
-        0.5, 0.5,
-        -0.5, 0.5
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    /* Create a new VAO (Vertex Array Object) */
-    unsigned int vao;
-    GL_CALL(glGenVertexArrays(1, &vao));
-    GL_CALL(glBindVertexArray(vao));
-
-    /* Create a new vertex buffer */
-    VertexBuffer vb(positions, 8 * sizeof(float));
-
-    GL_CALL(glEnableVertexAttribArray(0));
-    GL_CALL(glVertexAttribPointer(
-        0, // index
-        2, // size
-        GL_FLOAT, // data type
-        GL_FALSE, // should it be normalized?
-        sizeof(float) * 2, // stride - the amount of memory we need to go to the next vertex (for more complex data structures we should use e.g. structs)
-        0 // pointer - the amount of memory we need to go to the next parameter (in this case, the next axis point)
-    ));
-
-    /* Create a new IBO (Index Buffer Object) */
-    IndexBuffer ibo(indices, 6);
-
-    /* Create the shader */
-    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
-    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    GL_CALL(glUseProgram(shader));
-
-    GL_CALL(int uniformLocation = glGetUniformLocation(shader, "u_Color"));
-    ASSERT(uniformLocation != -1);
-
-    /* Unbind everything */
-    GL_CALL(glBindVertexArray(0));
-    GL_CALL(glUseProgram(0));
-    vb.Unbind();
-    ibo.Unbind();
-    //GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    //GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    
-    float R = 0.0f;
-    float increment = 0.02f;
-    Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };
-
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
+	
+    /* Wrapping all this in a separate scope since OpenGL (`glGetError`) returns an error if there is no context */
+    /* (Since `glfwTerminate` is being called at the end, which destroys the OpenGL context) */
     {
-        /* Render here */
-        GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+		float positions[] = {
+			-0.5, -0.5,
+			0.5, -0.5,
+			0.5, 0.5,
+			-0.5, 0.5
+		};
 
-        /* Re-use program */
-        GL_CALL(glUseProgram(shader));
-        
-        /* Set color with a uniform */
-        GL_CALL(glUniform4f(
-            uniformLocation,
-            R,
-            uniformColor.G,
-            uniformColor.B,
-            uniformColor.A
-        ));
+		unsigned int indices[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
 
-        //GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, shader));
-        //GL_CALL(glEnableVertexAttribArray(0));
-        //GL_CALL(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+		/* Create a new VAO (Vertex Array Object) */
+		unsigned int vao;
+		GL_CALL(glGenVertexArrays(1, &vao));
+		GL_CALL(glBindVertexArray(vao));
 
-        /* Re-bind VAO */
-        GL_CALL(glBindVertexArray(vao));
+		/* Create a new vertex buffer */
+		VertexBuffer vb(positions, 8 * sizeof(float));
 
-        /* Re-bind IBO */
-        ibo.Bind();
-        //GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+		GL_CALL(glEnableVertexAttribArray(0));
+		GL_CALL(glVertexAttribPointer(
+			0, // index
+			2, // size
+			GL_FLOAT, // data type
+			GL_FALSE, // should it be normalized?
+			sizeof(float) * 2, // stride - the amount of memory we need to go to the next vertex (for more complex data structures we should use e.g. structs)
+			0 // pointer - the amount of memory we need to go to the next parameter (in this case, the next axis point)
+		));
 
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        //glDrawArrays(GL_POLYGON, 0, 5);
-        GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+		/* Create a new IBO (Index Buffer Object) */
+		IndexBuffer ibo(indices, 6);
 
-        if (R >= 1.0f)
-            increment = -0.02f;
-        else if (R <= 0.0f)
-            increment = 0.02f;
+		/* Create the shader */
+		ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+		unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+		GL_CALL(glUseProgram(shader));
 
-        R += increment;
+		GL_CALL(int uniformLocation = glGetUniformLocation(shader, "u_Color"));
+		ASSERT(uniformLocation != -1);
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+		/* Unbind everything */
+		GL_CALL(glBindVertexArray(0));
+		GL_CALL(glUseProgram(0));
+		vb.Unbind();
+		ibo.Unbind();
 
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
+		float R = 0.0f;
+		float increment = 0.02f;
+		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };
 
-    glDeleteProgram(shader);
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
+		{
+			GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+
+			/* Re-use program */
+			GL_CALL(glUseProgram(shader));
+
+			/* Set color with a uniform */
+			GL_CALL(glUniform4f(
+				uniformLocation,
+				R,
+				uniformColor.G,
+				uniformColor.B,
+				uniformColor.A
+			));
+
+			/* Re-bind VAO */
+			GL_CALL(glBindVertexArray(vao));
+
+			/* Re-bind IBO */
+			ibo.Bind();
+
+            /* Draw */
+			GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+            /* Color animation */
+			if (R >= 1.0f)
+				increment = -0.02f;
+			else if (R <= 0.0f)
+				increment = 0.02f;
+
+			R += increment;
+
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
+
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+
+		glDeleteProgram(shader);
+	}
+
     glfwTerminate();
     return 0;
 }
