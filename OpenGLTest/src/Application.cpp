@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 /* Shaders */
 
@@ -157,25 +158,20 @@ int main(void)
 		};
 
 		/* Create a new VAO (Vertex Array Object) */
-		unsigned int vao;
-		GL_CALL(glGenVertexArrays(1, &vao));
-		GL_CALL(glBindVertexArray(vao));
-
+		VertexArray va;
+        
 		/* Create a new vertex buffer */
 		VertexBuffer vb(positions, 8 * sizeof(float));
 
-		GL_CALL(glEnableVertexAttribArray(0));
-		GL_CALL(glVertexAttribPointer(
-			0, // index
-			2, // size
-			GL_FLOAT, // data type
-			GL_FALSE, // should it be normalized?
-			sizeof(float) * 2, // stride - the amount of memory we need to go to the next vertex (for more complex data structures we should use e.g. structs)
-			0 // pointer - the amount of memory we need to go to the next parameter (in this case, the next axis point)
-		));
+        /* Create vertex buffer layout */
+        VertexBufferLayout layout;
+        layout.Push(GL_FLOAT, 2);
 
-		/* Create a new IBO (Index Buffer Object) */
-		IndexBuffer ibo(indices, 6);
+        /* Add vertex buffer to VAO */
+        va.AddBuffer(vb, layout);
+        
+        /* Create a new IBO (Index Buffer Object) */
+		IndexBuffer ib(indices, 6);
 
 		/* Create the shader */
 		ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
@@ -189,7 +185,7 @@ int main(void)
 		GL_CALL(glBindVertexArray(0));
 		GL_CALL(glUseProgram(0));
 		vb.Unbind();
-		ibo.Unbind();
+		ib.Unbind();
 
 		float R = 0.0f;
 		float increment = 0.02f;
@@ -213,10 +209,10 @@ int main(void)
 			));
 
 			/* Re-bind VAO */
-			GL_CALL(glBindVertexArray(vao));
+			va.Bind();
 
-			/* Re-bind IBO */
-			ibo.Bind();
+			/* Re-bind index buffer */
+			ib.Bind();
 
             /* Draw */
 			GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));

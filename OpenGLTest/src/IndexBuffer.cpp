@@ -4,7 +4,7 @@
 IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count)
 	: m_Count(count)
 {
-	/* Generate a new IBO */
+	/* Generate a new index buffer */
 	GL_CALL(glGenBuffers(1, &m_RendererID));
 	/* Bind it */
 	GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID));
