@@ -1,5 +1,5 @@
 #include "Shader.h"
-#include "Renderer.h"
+#include "GLHandleError.h"
 
 #include <GL/glew.h>
 #include <string>
@@ -30,7 +30,7 @@ void Shader::Unbind()
 
 void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
-	GL_CALL(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
+    GL_CALL(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
 }
 
 ShaderProgramSource Shader::ParseShader(const std::string& filepath)

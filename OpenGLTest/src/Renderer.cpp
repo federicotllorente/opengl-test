@@ -1,22 +1,22 @@
 #include "Renderer.h"
+#include "GLHandleError.h"
 
-void Log(std::string message)
+void Renderer::Clear() const
 {
-    std::cout << "[Logger] " << message << std::endl;
+	GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-void GLClearError()
+void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, Shader& shader) const
 {
-    while (glGetError() != GL_NO_ERROR);
-}
+	/* Re-bind shader */
+	shader.Bind();
 
-bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError())
-    {
-        std::cout << "[OpenGL Error] Code " << error << ": " << function << " in " << file << ":" << line << std::endl;
-        return false;
-    }
+	/* Re-bind VAO */
+	va.Bind();
 
-    return true;
+	/* Re-bind index buffer */
+	ib.Bind();
+
+	/* Draw */
+	GL_CALL(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 }

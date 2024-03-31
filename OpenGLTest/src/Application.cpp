@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "GLHandleError.h"
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -93,6 +94,8 @@ int main(void)
         vb.Unbind();
 		ib.Unbind();
 
+		Renderer renderer;
+
 		float R = 0.0f;
 		float increment = 0.02f;
 		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };
@@ -100,7 +103,7 @@ int main(void)
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
-			GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+			renderer.Clear();
 
 			/* Re-bind shader */
 			shader.Bind();
@@ -114,14 +117,8 @@ int main(void)
 				uniformColor.A
 			);
 
-			/* Re-bind VAO */
-			va.Bind();
-
-			/* Re-bind index buffer */
-			ib.Bind();
-
-            /* Draw */
-			GL_CALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+			/* Draw */
+			renderer.Draw(va, ib, shader);
 
             /* Color animation */
 			if (R >= 1.0f)
