@@ -11,6 +11,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 struct Color
 {
@@ -56,11 +57,11 @@ int main(void)
     /* Wrapping all this in a separate scope since OpenGL (`glGetError`) returns an error if there is no context */
     /* (Since `glfwTerminate` is being called at the end, which destroys the OpenGL context) */
     {
-		float positions[] = {
-			-0.5, -0.5,
-			0.5, -0.5,
-			0.5, 0.5,
-			-0.5, 0.5
+		float verticesData[] = {
+			-0.5, -0.5, 0.0f, 0.0f,
+			0.5, -0.5, 1.0f, 0.0f,
+			0.5, 0.5, 1.0f, 1.0f,
+			-0.5, 0.5, 0.0f, 1.0f
 		};
 
 		unsigned int indices[] = {
@@ -72,11 +73,12 @@ int main(void)
 		VertexArray va;
         
 		/* Create a new vertex buffer */
-		VertexBuffer vb(positions, 8 * sizeof(float));
+		VertexBuffer vb(verticesData, 4 * 4 * sizeof(float));
 
         /* Create vertex buffer layout */
         VertexBufferLayout layout;
-        layout.Push(GL_FLOAT, 2);
+		layout.Push(GL_FLOAT, 2);
+		layout.Push(GL_FLOAT, 2);
 
         /* Add vertex buffer to VAO */
         va.AddBuffer(vb, layout);
@@ -85,8 +87,16 @@ int main(void)
 		IndexBuffer ib(indices, 6);
 
 		/* Create the shader */
-		Shader shader("res/shaders/Basic.shader");
+		//Shader shader("res/shaders/Basic.shader");
+		Shader shader("res/shaders/BasicWithTexture.shader");
 		shader.Bind();
+
+		/* Create a texture */
+		Texture texture("res/textures/cat.png");
+
+		/* Bind it and set a 1-integer uniform to the shader for the texture */
+		texture.Bind();
+		shader.SetUniform1i("u_Texture", 0);
 
 		/* Unbind everything */
 		va.Unbind();
@@ -96,9 +106,9 @@ int main(void)
 
 		Renderer renderer;
 
-		float R = 0.0f;
+		/*float R = 0.0f;
 		float increment = 0.02f;
-		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };
+		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };*/
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
@@ -109,24 +119,24 @@ int main(void)
 			shader.Bind();
 
 			/* Set color with a uniform */
-			shader.SetUniform4f(
+			/*shader.SetUniform4f(
 				"u_Color",
 				R,
 				uniformColor.G,
 				uniformColor.B,
 				uniformColor.A
-			);
+			);*/
 
 			/* Draw */
 			renderer.Draw(va, ib, shader);
 
             /* Color animation */
-			if (R >= 1.0f)
+			/*if (R >= 1.0f)
 				increment = -0.02f;
 			else if (R <= 0.0f)
 				increment = 0.02f;
 
-			R += increment;
+			R += increment;*/
 
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
