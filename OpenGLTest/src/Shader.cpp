@@ -2,7 +2,6 @@
 #include "GLHandleError.h"
 
 #include <GL/glew.h>
-#include <string>
 #include <fstream>
 #include <sstream>
 
@@ -41,6 +40,16 @@ void Shader::SetUniform1f(const std::string& name, float value)
 void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
 {
     GL_CALL(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
+}
+
+void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix)
+{
+    GL_CALL(glUniformMatrix4fv(
+        GetUniformLocation(name), // Location
+        1, // Count
+        GL_FALSE, // Should this matrix be transposed?
+        &matrix[0][0] // Location of the first element
+    ));
 }
 
 ShaderProgramSource Shader::ParseShader(const std::string& filepath)

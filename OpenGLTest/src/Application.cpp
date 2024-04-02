@@ -13,6 +13,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 struct Color
 {
     float R;
@@ -86,6 +89,8 @@ int main(void)
         /* Create a new IBO (Index Buffer Object) */
 		IndexBuffer ib(indices, 6);
 
+		glm::mat4 projectionMatrix = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
 		/* Create the shader */
 		//Shader shader("res/shaders/Basic.shader");
 		Shader shader("res/shaders/BasicWithTexture.shader");
@@ -97,6 +102,7 @@ int main(void)
 		/* Bind it and set a 1-integer uniform to the shader for the texture */
 		texture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
+		shader.SetUniformMat4f("u_MVP", projectionMatrix);
 
 		/* Unbind everything */
 		va.Unbind();
