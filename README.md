@@ -8,3 +8,4 @@ In progress...
 - [GLFW](https://www.glfw.org/)
 - [STB Image](https://github.com/nothings/stb/blob/master/stb_image.h) (part of [STB](https://github.com/nothings/stb))
 - [GLM](https://github.com/g-truc/glm/)
+- [ImGui](https://github.com/ocornut/imgui/)
