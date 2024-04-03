@@ -16,6 +16,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 struct Color
 {
     float R;
@@ -38,8 +42,11 @@ int main(void)
     /* Set profile to Core */
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	int windowWidth = 1200;
+	int windowHeight = 900;
+
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1200, 900, "OpenGL Test", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -60,17 +67,24 @@ int main(void)
     /* Wrapping all this in a separate scope since OpenGL (`glGetError`) returns an error if there is no context */
     /* (Since `glfwTerminate` is being called at the end, which destroys the OpenGL context) */
     {
+		float squareSize = 500.0f;
+		float padding = 80.0f;
+
 		float verticesData[] = {
-			-0.5, -0.5, 0.0f, 0.0f,
-			0.5, -0.5, 1.0f, 0.0f,
-			0.5, 0.5, 1.0f, 1.0f,
-			-0.5, 0.5, 0.0f, 1.0f
+			padding, windowHeight - padding - squareSize, 0.0f, 0.0f,
+			padding + squareSize, windowHeight - padding - squareSize, 1.0f, 0.0f,
+			padding + squareSize, windowHeight - padding, 1.0f, 1.0f,
+			padding, windowHeight - padding, 0.0f, 1.0f
 		};
 
 		unsigned int indices[] = {
 			0, 1, 2,
 			2, 3, 0
 		};
+
+		/* Enable blending and define a blend function */
+		GL_CALL(glEnable(GL_BLEND));
+		GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 		/* Create a new VAO (Vertex Array Object) */
 		VertexArray va;
@@ -89,7 +103,16 @@ int main(void)
         /* Create a new IBO (Index Buffer Object) */
 		IndexBuffer ib(indices, 6);
 
-		glm::mat4 projectionMatrix = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+		// Maps what the "camera" sees to NDC (Normalized device coordinate), taking care of aspect ratio and perspective
+		glm::mat4 projectionMatrix = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
+
+		// Defines position and orientation of the "camera"
+		glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
+
+		// Defines position, rotation and scale of the vertices of the model in the world
+		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+
+		glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
 
 		/* Create the shader */
 		//Shader shader("res/shaders/Basic.shader");
@@ -97,12 +120,13 @@ int main(void)
 		shader.Bind();
 
 		/* Create a texture */
-		Texture texture("res/textures/cat.png");
+		//Texture texture("res/textures/cat.png");
+		Texture texture("res/textures/opengl-logo.png");
 
 		/* Bind it and set a 1-integer uniform to the shader for the texture */
 		texture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
-		shader.SetUniformMat4f("u_MVP", projectionMatrix);
+		shader.SetUniformMat4f("u_MVP", mvp);
 
 		/* Unbind everything */
 		va.Unbind();
@@ -112,6 +136,20 @@ int main(void)
 
 		Renderer renderer;
 
+		/* Create and setup ImGui context */
+		const char* glsl_version = "#version 330 core";
+		ImGui::CreateContext();
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplOpenGL3_Init(glsl_version);
+
+		IMGUI_CHECKVERSION();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+		io.FontGlobalScale = 1.7f; // Set global scale
+		ImGui::StyleColorsDark(); // Set dark mode
+
 		/*float R = 0.0f;
 		float increment = 0.02f;
 		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };*/
@@ -120,6 +158,11 @@ int main(void)
 		while (!glfwWindowShouldClose(window))
 		{
 			renderer.Clear();
+
+			// Start the Dear ImGui frame
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
 
 			/* Re-bind shader */
 			shader.Bind();
@@ -136,13 +179,28 @@ int main(void)
 			/* Draw */
 			renderer.Draw(va, ib, shader);
 
-            /* Color animation */
+			/* Color animation */
 			/*if (R >= 1.0f)
 				increment = -0.02f;
 			else if (R <= 0.0f)
 				increment = 0.02f;
 
 			R += increment;*/
+
+			/* Setup ImGui window */
+			{
+				static float f = 0.0f;
+				
+				ImGui::Begin("Debug");
+				ImGui::Text("This is some useful text.");
+				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+				ImGui::End();
+			}
+
+			/* Render ImGui window */
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
@@ -151,6 +209,11 @@ int main(void)
 			glfwPollEvents();
 		}
 	}
+
+	/* ImGui Cleanup */
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;
