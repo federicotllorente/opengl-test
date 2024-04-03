@@ -67,8 +67,8 @@ int main(void)
     /* Wrapping all this in a separate scope since OpenGL (`glGetError`) returns an error if there is no context */
     /* (Since `glfwTerminate` is being called at the end, which destroys the OpenGL context) */
     {
-		float squareSize = 500.0f;
-		float padding = 80.0f;
+		float squareSize = 400.0f;
+		float padding = 0.0f;
 
 		float verticesData[] = {
 			padding, windowHeight - padding - squareSize, 0.0f, 0.0f,
@@ -103,16 +103,9 @@ int main(void)
         /* Create a new IBO (Index Buffer Object) */
 		IndexBuffer ib(indices, 6);
 
-		// Maps what the "camera" sees to NDC (Normalized device coordinate), taking care of aspect ratio and perspective
-		glm::mat4 projectionMatrix = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
-
-		// Defines position and orientation of the "camera"
-		glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));
-
-		// Defines position, rotation and scale of the vertices of the model in the world
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-
-		glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
+		/* MVP matrices */
+		glm::mat4 projectionMatrix = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f); // Maps what the "camera" sees to NDC (Normalized device coordinate), taking care of aspect ratio and perspective
+		glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // Defines position and orientation of the "camera"
 
 		/* Create the shader */
 		//Shader shader("res/shaders/Basic.shader");
@@ -126,7 +119,6 @@ int main(void)
 		/* Bind it and set a 1-integer uniform to the shader for the texture */
 		texture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
-		shader.SetUniformMat4f("u_MVP", mvp);
 
 		/* Unbind everything */
 		va.Unbind();
@@ -154,6 +146,8 @@ int main(void)
 		float increment = 0.02f;
 		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };*/
 
+		glm::vec3 translation(0, 0, 0);
+
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
@@ -166,6 +160,10 @@ int main(void)
 
 			/* Re-bind shader */
 			shader.Bind();
+
+			glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translation); // Defines position, rotation and scale of the vertices of the model in the world
+			glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
+			shader.SetUniformMat4f("u_MVP", mvp);
 
 			/* Set color with a uniform */
 			/*shader.SetUniform4f(
@@ -189,11 +187,17 @@ int main(void)
 
 			/* Setup ImGui window */
 			{
-				static float f = 0.0f;
-				
 				ImGui::Begin("Debug");
-				ImGui::Text("This is some useful text.");
-				ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+
+				//ImGui::Text("This is some useful text.");
+				//ImGui::SliderFloat3("Translation", &translation.x, 0.0f, (float)windowWidth);
+
+				ImGui::SliderFloat("Translation X", &translation.x, -(float)windowWidth, (float)windowWidth);
+				ImGui::SliderFloat("Translation Y", &translation.y, -(float)windowHeight, (float)windowHeight);
+
+				if (ImGui::Button("Reset Translation"))
+					translation = glm::vec3(0, 0, 0);
+
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 				ImGui::End();
 			}
