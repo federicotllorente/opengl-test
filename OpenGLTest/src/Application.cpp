@@ -113,11 +113,13 @@ int main(void)
 		shader.Bind();
 
 		/* Create a texture */
-		//Texture texture("res/textures/cat.png");
-		Texture texture("res/textures/opengl-logo.png");
+		Texture catTexture("res/textures/cat.png");
+		Texture logoTexture("res/textures/opengl-logo.png");
+		int activeTexture = 1; // Save the state to switch from one to another
+		// 0 - cat / 1 - logo
 
 		/* Bind it and set a 1-integer uniform to the shader for the texture */
-		texture.Bind();
+		logoTexture.Bind();
 		shader.SetUniform1i("u_Texture", 0);
 
 		/* Unbind everything */
@@ -195,8 +197,30 @@ int main(void)
 				ImGui::SliderFloat("Translation X", &translation.x, -(float)windowWidth, (float)windowWidth);
 				ImGui::SliderFloat("Translation Y", &translation.y, -(float)windowHeight, (float)windowHeight);
 
-				if (ImGui::Button("Reset Translation"))
+				if (ImGui::Button("Reset translation"))
 					translation = glm::vec3(0, 0, 0);
+
+				if (ImGui::Button("Change texture")) {
+					switch (activeTexture)
+					{
+					case 0: // cat
+					{
+						logoTexture.Bind();
+						shader.SetUniform1i("u_Texture", 0);
+						activeTexture = 1;
+						break;
+					}
+					case 1: // logo
+					{
+						catTexture.Bind();
+						shader.SetUniform1i("u_Texture", 0);
+						activeTexture = 0;
+						break;
+					}
+					default:
+						break;
+					}
+				}
 
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 				ImGui::End();
