@@ -5,28 +5,18 @@
 #include <fstream>
 #include <sstream>
 
+#include "AppWindow.h"
 #include "GLHandleError.h"
-#include "Renderer.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "Shader.h"
-#include "Texture.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "tests/TestClearColor.h"
+#include "tests/TestSquare.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-struct Color
-{
-    float R;
-    float G;
-    float B;
-    float A;
-};
+int WindowWidth = 1200;
+int WindowHeight = 900;
 
 int main(void)
 {
@@ -42,11 +32,8 @@ int main(void)
     /* Set profile to Core */
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	int windowWidth = 1200;
-	int windowHeight = 900;
-
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL Test", NULL, NULL);
+    window = glfwCreateWindow(WindowWidth, WindowHeight, "OpenGL Test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -67,66 +54,9 @@ int main(void)
     /* Wrapping all this in a separate scope since OpenGL (`glGetError`) returns an error if there is no context */
     /* (Since `glfwTerminate` is being called at the end, which destroys the OpenGL context) */
     {
-		float squareSize = 400.0f;
-		float padding = 0.0f;
-
-		float verticesData[] = {
-			padding, windowHeight - padding - squareSize, 0.0f, 0.0f,
-			padding + squareSize, windowHeight - padding - squareSize, 1.0f, 0.0f,
-			padding + squareSize, windowHeight - padding, 1.0f, 1.0f,
-			padding, windowHeight - padding, 0.0f, 1.0f
-		};
-
-		unsigned int indices[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
 		/* Enable blending and define a blend function */
 		GL_CALL(glEnable(GL_BLEND));
 		GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-		/* Create a new VAO (Vertex Array Object) */
-		VertexArray va;
-        
-		/* Create a new vertex buffer */
-		VertexBuffer vb(verticesData, 4 * 4 * sizeof(float));
-
-        /* Create vertex buffer layout */
-        VertexBufferLayout layout;
-		layout.Push(GL_FLOAT, 2);
-		layout.Push(GL_FLOAT, 2);
-
-        /* Add vertex buffer to VAO */
-        va.AddBuffer(vb, layout);
-        
-        /* Create a new IBO (Index Buffer Object) */
-		IndexBuffer ib(indices, 6);
-
-		/* MVP matrices */
-		glm::mat4 projectionMatrix = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f); // Maps what the "camera" sees to NDC (Normalized device coordinate), taking care of aspect ratio and perspective
-		glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)); // Defines position and orientation of the "camera"
-
-		/* Create the shader */
-		//Shader shader("res/shaders/Basic.shader");
-		Shader shader("res/shaders/BasicWithTexture.shader");
-		shader.Bind();
-
-		/* Create a texture */
-		Texture catTexture("res/textures/cat.png");
-		Texture logoTexture("res/textures/opengl-logo.png");
-		int activeTexture = 1; // Save the state to switch from one to another
-		// 0 - cat / 1 - logo
-
-		/* Bind it and set a 1-integer uniform to the shader for the texture */
-		logoTexture.Bind();
-		shader.SetUniform1i("u_Texture", 0);
-
-		/* Unbind everything */
-		va.Unbind();
-        shader.Unbind();
-        vb.Unbind();
-		ib.Unbind();
 
 		Renderer renderer;
 
@@ -144,87 +74,27 @@ int main(void)
 		io.FontGlobalScale = 1.7f; // Set global scale
 		ImGui::StyleColorsDark(); // Set dark mode
 
-		/*float R = 0.0f;
-		float increment = 0.02f;
-		Color uniformColor = { 0.0f, 0.584f, 0.141f, 1.0f };*/
-
-		glm::vec3 translation(0, 0, 0);
+		test::TestClearColor testClearColor;
+		test::TestSquare testSquare(400.0f, glm::vec2(0, 0));
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			renderer.Clear();
 
+			testClearColor.OnUpdate(0.0f);
+			testClearColor.OnRender();
+			
+			testSquare.OnUpdate(0.0f);
+			testSquare.OnRender(renderer);
+
 			// Start the Dear ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
-			/* Re-bind shader */
-			shader.Bind();
-
-			glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translation); // Defines position, rotation and scale of the vertices of the model in the world
-			glm::mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
-			shader.SetUniformMat4f("u_MVP", mvp);
-
-			/* Set color with a uniform */
-			/*shader.SetUniform4f(
-				"u_Color",
-				R,
-				uniformColor.G,
-				uniformColor.B,
-				uniformColor.A
-			);*/
-
-			/* Draw */
-			renderer.Draw(va, ib, shader);
-
-			/* Color animation */
-			/*if (R >= 1.0f)
-				increment = -0.02f;
-			else if (R <= 0.0f)
-				increment = 0.02f;
-
-			R += increment;*/
-
-			/* Setup ImGui window */
-			{
-				ImGui::Begin("Debug");
-
-				//ImGui::Text("This is some useful text.");
-				//ImGui::SliderFloat3("Translation", &translation.x, 0.0f, (float)windowWidth);
-
-				ImGui::SliderFloat("Translation X", &translation.x, -(float)windowWidth, (float)windowWidth);
-				ImGui::SliderFloat("Translation Y", &translation.y, -(float)windowHeight, (float)windowHeight);
-
-				if (ImGui::Button("Reset translation"))
-					translation = glm::vec3(0, 0, 0);
-
-				if (ImGui::Button("Change texture")) {
-					switch (activeTexture)
-					{
-					case 0: // cat
-					{
-						logoTexture.Bind();
-						shader.SetUniform1i("u_Texture", 0);
-						activeTexture = 1;
-						break;
-					}
-					case 1: // logo
-					{
-						catTexture.Bind();
-						shader.SetUniform1i("u_Texture", 0);
-						activeTexture = 0;
-						break;
-					}
-					default:
-						break;
-					}
-				}
-
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-				ImGui::End();
-			}
+			testClearColor.OnImGuiRender();
+			testSquare.OnImGuiRender(io);
 
 			/* Render ImGui window */
 			ImGui::Render();
