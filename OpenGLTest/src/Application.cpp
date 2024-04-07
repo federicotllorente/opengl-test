@@ -10,12 +10,15 @@
 
 #include "tests/TestClearColor.h"
 #include "tests/TestSquare.h"
+#include "tests/TestSombrero.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-int WindowWidth = 1200;
+//int WindowWidth = 1200;
+//int WindowHeight = 900;
+int WindowWidth = 900;
 int WindowHeight = 900;
 
 int main(void)
@@ -74,27 +77,32 @@ int main(void)
 		io.FontGlobalScale = 1.7f; // Set global scale
 		ImGui::StyleColorsDark(); // Set dark mode
 
-		test::TestClearColor testClearColor;
-		test::TestSquare testSquare(400.0f, glm::vec2(0, 0));
+		//test::TestClearColor testClearColor;
+		//test::TestSquare testSquare(400.0f, glm::vec2(0, 0));
+		test::TestSombrero testSombrero;
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			renderer.Clear();
 
-			testClearColor.OnUpdate(0.0f);
-			testClearColor.OnRender();
+			//testClearColor.OnUpdate(0.0f);
+			//testClearColor.OnRender();
 			
-			testSquare.OnUpdate(0.0f);
-			testSquare.OnRender(renderer);
+			//testSquare.OnUpdate(0.0f);
+			//testSquare.OnRender(renderer);
+
+			testSombrero.OnUpdate(0.0f);
+			testSombrero.OnRender(renderer);
 
 			// Start the Dear ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
-			testClearColor.OnImGuiRender();
-			testSquare.OnImGuiRender(io);
+			//testClearColor.OnImGuiRender();
+			//testSquare.OnImGuiRender(io);
+			testSombrero.OnImGuiRender(io);
 
 			/* Render ImGui window */
 			ImGui::Render();

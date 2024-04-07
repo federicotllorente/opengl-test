@@ -87,7 +87,8 @@ namespace test
 		if (ImGui::Button("Reset translation B"))
 			m_TranslationB = glm::vec3(0, 0, 0);
 
-		if (ImGui::Button("Change texture")) {
+		if (ImGui::Button("Change texture"))
+		{
 			switch (m_ActiveTexture)
 			{
 			case 0: // cat
