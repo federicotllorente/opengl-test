@@ -77,32 +77,47 @@ int main(void)
 		io.FontGlobalScale = 1.7f; // Set global scale
 		ImGui::StyleColorsDark(); // Set dark mode
 
-		//test::TestClearColor testClearColor;
-		//test::TestSquare testSquare(400.0f, glm::vec2(0, 0));
-		test::TestSombrero testSombrero;
+		test::Test* currentTest = nullptr;
+		test::TestMenu* menu = new test::TestMenu(currentTest);
+		currentTest = menu;
+		
+		menu->RegisterTest<test::TestClearColor>("Clear color");
+		menu->RegisterTest<test::TestSquare>("Square");
+		menu->RegisterTest<test::TestSombrero>("Sombrero");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+			GL_CALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 			renderer.Clear();
-
-			//testClearColor.OnUpdate(0.0f);
-			//testClearColor.OnRender();
-			
-			//testSquare.OnUpdate(0.0f);
-			//testSquare.OnRender(renderer);
-
-			testSombrero.OnUpdate(0.0f);
-			testSombrero.OnRender(renderer);
 
 			// Start the Dear ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
-			//testClearColor.OnImGuiRender();
-			//testSquare.OnImGuiRender(io);
-			testSombrero.OnImGuiRender(io);
+			if (currentTest)
+			{
+				currentTest->OnUpdate(0.0f);
+				currentTest->OnRender(renderer);
+				
+				ImGui::Begin("Test");
+
+				if (currentTest != menu)
+				{
+					if (ImGui::Button("<-"))
+					{
+						delete currentTest;
+						currentTest = menu;
+					}
+
+					ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+				}
+
+				currentTest->OnImGuiRender(io);	
+				
+				ImGui::End();
+			}
 
 			/* Render ImGui window */
 			ImGui::Render();
@@ -114,6 +129,11 @@ int main(void)
 			/* Poll for and process events */
 			glfwPollEvents();
 		}
+
+		/* Test Cleanup */
+		delete currentTest;
+		if (currentTest != menu)
+			delete menu;
 	}
 
 	/* ImGui Cleanup */

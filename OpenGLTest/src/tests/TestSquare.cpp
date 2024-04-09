@@ -5,16 +5,19 @@
 
 namespace test
 {
-	test::TestSquare::TestSquare(float size, glm::vec2 initialCoord)
-		: m_Size(size),
+	test::TestSquare::TestSquare()
+		: m_Size(0),
 		m_TranslationA(100, 100, 0),
 		m_TranslationB(200, 200, 0)
 	{
+		float m_Size = 400.0f;
+		glm::vec2 initialCoord(0, 0);
+
 		float verticesData[] = {
-			-(size / 2), -(size / 2), 0.0f, 0.0f,
-			size / 2, -(size / 2), 1.0f, 0.0f,
-			size / 2, size / 2, 1.0f, 1.0f,
-			-(size / 2), size / 2, 0.0f, 1.0f
+			-(m_Size / 2), -(m_Size / 2), 0.0f, 0.0f,
+			m_Size / 2, -(m_Size / 2), 1.0f, 0.0f,
+			m_Size / 2, m_Size / 2, 1.0f, 1.0f,
+			-(m_Size / 2), m_Size / 2, 0.0f, 1.0f
 		};
 		
 		/* Create a new vertex buffer */
@@ -45,14 +48,6 @@ namespace test
 		m_IndexBuffer.Unbind();
 	}
 
-	test::TestSquare::~TestSquare()
-	{
-	}
-
-	void test::TestSquare::OnUpdate(float deltaTime)
-	{
-	}
-
 	void test::TestSquare::OnRender(Renderer renderer)
 	{
 		m_Shader.Bind();
@@ -76,8 +71,6 @@ namespace test
 
 	void test::TestSquare::OnImGuiRender(ImGuiIO& io)
 	{
-		ImGui::Begin("Debug");
-
 		ImGui::SliderFloat3("Translation A", &m_TranslationA.x, -(float)WindowWidth, (float)WindowWidth);
 		ImGui::SliderFloat3("Translation B", &m_TranslationB.x, -(float)WindowWidth, (float)WindowWidth);
 
@@ -109,8 +102,5 @@ namespace test
 				break;
 			}
 		}
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::End();
 	}
 }

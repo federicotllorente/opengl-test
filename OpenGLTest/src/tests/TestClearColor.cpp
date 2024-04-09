@@ -9,15 +9,7 @@ namespace test
 	{
 	}
 
-	test::TestClearColor::~TestClearColor()
-	{
-	}
-
-	void test::TestClearColor::OnUpdate(float deltaTime)
-	{
-	}
-
-	void test::TestClearColor::OnRender()
+	void test::TestClearColor::OnRender(Renderer renderer)
 	{
 		GL_CALL(glClearColor(
 			m_Clear_Color[0],
@@ -28,7 +20,7 @@ namespace test
 		GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
 	}
 
-	void test::TestClearColor::OnImGuiRender()
+	void test::TestClearColor::OnImGuiRender(ImGuiIO& io)
 	{
 		ImGui::ColorPicker4("Clear color", m_Clear_Color);
 	}

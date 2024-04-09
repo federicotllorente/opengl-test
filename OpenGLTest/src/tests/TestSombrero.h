@@ -1,14 +1,9 @@
 #pragma once
 
 #include "Test.h"
-#include "Renderer.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
 
 namespace test
 {
@@ -18,7 +13,6 @@ namespace test
 		TestSombrero();
 		~TestSombrero();
 
-		void OnUpdate(float deltaTime) override;
 		void OnRender(Renderer renderer);
 		void OnImGuiRender(ImGuiIO& io);
 

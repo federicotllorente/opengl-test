@@ -18,10 +18,8 @@ namespace test
 	class TestSquare : public Test
 	{
 	public:
-		TestSquare(float size, glm::vec2 initialCoord);
-		~TestSquare();
-
-		void OnUpdate(float deltaTime) override;
+		TestSquare();
+		
 		void OnRender(Renderer renderer);
 		void OnImGuiRender(ImGuiIO& io);
 

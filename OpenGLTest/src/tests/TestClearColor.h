@@ -8,11 +8,9 @@ namespace test
 	{
 	public:
 		TestClearColor();
-		~TestClearColor();
 
-		void OnUpdate(float deltaTime) override;
-		void OnRender() override;
-		void OnImGuiRender() override;
+		void OnRender(Renderer renderer) override;
+		void OnImGuiRender(ImGuiIO& io) override;
 
 	private:
 		float m_Clear_Color[4];

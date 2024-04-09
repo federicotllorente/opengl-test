@@ -3,8 +3,6 @@
 #include "VertexArray.h"
 #include "Shader.h"
 
-#include <vector>
-
 namespace test
 {
 	TestSombrero::TestSombrero()
@@ -92,10 +90,6 @@ namespace test
 		m_IndexBuffer = nullptr;
 	}
 
-	void TestSombrero::OnUpdate(float deltaTime)
-	{
-	}
-
 	void TestSombrero::OnRender(Renderer renderer)
 	{
 		m_Shader.Bind();
@@ -123,8 +117,6 @@ namespace test
 
 	void test::TestSombrero::OnImGuiRender(ImGuiIO& io)
 	{
-		ImGui::Begin("Debug");
-
 		ImGui::SliderFloat("Rotation X", &m_AngleX, -90.0f, 90.0f);
 		ImGui::SliderFloat("Rotation Z", &m_AngleZ, -180.0f, 180.0f);
 
@@ -143,8 +135,5 @@ namespace test
 			m_AngleZ = 0.0f;
 
 		ImGui::ColorPicker4("Color", m_Color);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::End();
 	}
 }
